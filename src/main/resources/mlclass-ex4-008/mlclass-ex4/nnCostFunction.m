@@ -16,6 +16,7 @@ function [J grad] = nnCostFunction(nn_params, ...
 
 % Reshape nn_params back into the parameters Theta1 and Theta2, the weight matrices
 % for our 2 layer neural network
+size(nn_params)
 Theta1 = reshape(nn_params(1:hidden_layer_size * (input_layer_size + 1)), ...
                  hidden_layer_size, (input_layer_size + 1));
 
@@ -49,11 +50,22 @@ y_m
   a2 = sigmoid(z2)
   a2m = size(a2,1)
   a2 = [ones(a2m, 1) a2];
-  z3 = sigmoid(a2 * Theta2')
+  z3 = a2 * Theta2'
   prediction = sigmoid(z3)
   P=(-y_m .* log(prediction)) - ((1-y_m) .* log(1-prediction))
   size(P)
-J=( (1/m) * sum(sum(P())) )
+
+% Calculate the regularization
+% For Theta1 and Theta2
+
+tTheta1=Theta1(:,2:end)
+tTheta2=Theta2(:,2:end)
+
+  reg_t1=sum(sum(tTheta1.^2))
+  reg_t2=sum(sum(tTheta2.^2))
+  reg=(lambda/(2*m))*(reg_t1+reg_t2)
+
+  J=( (1/m) * sum(sum(P)))+reg
 
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
@@ -70,6 +82,19 @@ J=( (1/m) * sum(sum(P())) )
 %               over the training examples if you are implementing it for the 
 %               first time.
 %
+
+prediction
+y_m
+ d3=prediction-y_m
+tTheta2
+ d2=(d3*tTheta2).*sigmoidGradient(z2)
+Theta2_grad=Theta2_grad.+(d3'*a2)
+Theta1_grad=Theta1_grad.+(d2'*a1)
+
+Theta2_grad=Theta2_grad./m
+Theta2
+Theta1_grad=Theta1_grad./m
+Theta1
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -79,9 +104,8 @@ J=( (1/m) * sum(sum(P())) )
 %
 
 
-
-
-
+Theta2_grad(:,2:end)=Theta2_grad(:,2:end).+((lambda/(m)).*(Theta2(:,2:end)))
+Theta1_grad(:,2:end)=Theta1_grad(:,2:end).+((lambda/(m)).*(Theta1(:,2:end)))
 
 
 
